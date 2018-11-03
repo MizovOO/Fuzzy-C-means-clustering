@@ -1,0 +1,60 @@
+
+
+<div class="wrapper">
+    <mat-toolbar color="primary" >Fuzzy C-means</mat-toolbar>
+    <mat-drawer-container class="content-container">
+        <mat-drawer mode="side" opened class="side-panel">
+            <mat-toolbar >Control panel</mat-toolbar>
+            <div class="control-bar">
+              <div class="inputs-container">
+                <div class="input-group">
+                  <mat-form-field class="input-field">
+                      <input matInput type="number" placeholder="Total amount of the elements"  [(ngModel)]="elementsAmount">
+                    </mat-form-field>
+                    <mat-form-field class="input-field">
+                      <input matInput type="number" placeholder="Amount of the clusters" [(ngModel)]="clustersAmount">
+                    </mat-form-field>
+                </div>
+                <div class="input-group">
+                  <mat-form-field class="input-field">
+                      <input matInput type="number" placeholder="Max iterations number" [(ngModel)]="maxIterationsNumber">
+                    </mat-form-field>
+                    <mat-form-field class="input-field">
+                      <input matInput type="number" placeholder="Accuracy" [(ngModel)]="epsilon">
+                    </mat-form-field>
+                </div>
+              </div>
+                <div class="controls">
+                    <button mat-raised-button class="control-btn" matTooltip="Generate new points" color="warn" (click)="generateNewPoints()"><mat-icon>replay</mat-icon></button>
+                    <button mat-raised-button class="control-btn" matTooltip="Next clustering step" color="primary" (click)="oneCalculationStep()"><mat-icon>redo</mat-icon></button>
+                    <button mat-raised-button class="control-btn" matTooltip="Auto clustering with delay after step" (click)="autoCalculateWithDelay()"><mat-icon>slow_motion_video</mat-icon></button>
+                    <button mat-raised-button class="control-btn" matTooltip="Auto clustering without delay" (click)="autoCalculate()"><mat-icon>play_circle_outline</mat-icon></button>
+                    <button mat-raised-button class="control-btn" matTooltip="Pause" (click)="pause()"><mat-icon>pause_circle_outline</mat-icon></button>
+                </div>
+                <div class="logs">
+                    <!-- <p *ngFor="let log of logs">{{log}}</p> -->
+                    <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8" *ngIf="logs.length > 0">
+                        <ng-container matColumnDef="step">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header> Step No. </th>
+                          <td mat-cell *matCellDef="let element"> {{element.step}} </td>
+                        </ng-container>
+                    
+                        <ng-container matColumnDef="stepDifference">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header> Step difference </th>
+                          <td mat-cell *matCellDef="let element"> {{element.stepDifference}} </td>
+                        </ng-container>
+                        <!-- Weight Column -->
+                        <ng-container matColumnDef="time">
+                          <th mat-header-cell *matHeaderCellDef mat-sort-header> Time </th>
+                          <td mat-cell *matCellDef="let element"> {{element.time}} </td>
+                        </ng-container>
+    
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                      </table>
+                    </div>
+                </div>
+        </mat-drawer>
+        <mat-drawer-content><app-view [elementsAndCenters]="elementsAndCenters" [isProcessing]="isProcessing"></app-view></mat-drawer-content>
+      </mat-drawer-container>
+</div>
