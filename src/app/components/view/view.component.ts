@@ -9,13 +9,15 @@ import * as d3 from 'd3';
   selector: 'app-view',
   templateUrl: './view.component.html',
   styleUrls: ['./view.component.scss'],
-  host: {class: 'view'}
+  host: { class: 'view' }
 })
 export class ViewComponent implements AfterContentChecked {
 
   @ViewChild('svg') svg: ElementRef;
   @Input()
-  public isProcessing: boolean = false; 
+  public isProcessing: boolean = false;
+  public xCoordinate: string = '0';
+  public yCoordinate: string = '0';
   @Input()
   public set elementsAndCenters([elements, centers]: [Array<IElement>, Array<ICenter>]) {
     this.elements = elements;
@@ -31,6 +33,16 @@ export class ViewComponent implements AfterContentChecked {
   ngAfterContentChecked(): void {
     fillSVG(this.svg, this.elements, this.centers);
   }
+  public pointClick(event: MouseEvent): void {
+
+    const xCoordinate: number = event.toElement['cx'];
+    const yCoordinate: number = event.toElement['cy'];
+    if (xCoordinate !== undefined && yCoordinate !== null) {
+      this.xCoordinate = ((xCoordinate['animVal']['value'] - 10 ) / 20).toFixed(2);
+      this.yCoordinate = ((yCoordinate['animVal']['value'] - 10 ) / 20).toFixed(2);
+      // console.log((, (event.relatedTarget['cy']['animVal']['value'] - 10) / 20);
+    }
+  }
 }
 
 function fillSVG(svg: ElementRef, elements: Array<IElement>, centers: Array<ICenter>): void {
@@ -45,6 +57,8 @@ function fillSVG(svg: ElementRef, elements: Array<IElement>, centers: Array<ICen
         .attr('cy', (last(element.coordinates) * 20) + 10)
         .attr('r', 5)
         .attr('fill', colorPallet[clusterIndex])
+        .attr('stroke', colorPallet[clusterIndex])
+        
     })
     centers.map((element: IElement, index: number) => {
       selectedSVG

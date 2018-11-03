@@ -8,11 +8,14 @@
             <svg
                 #svg
                 class="main-svg"
+                (click)='pointClick($event)'
             ></svg>
 
         </mat-card-content>
-        <mat-card-actions>
-            <mat-progress-bar mode="indeterminate" *ngIf="isProcessing"></mat-progress-bar> 
-          </mat-card-actions>
+        <div>
+          <span>Click on point to get it's coordinate: </span>
+          <span> X: {{xCoordinate}}; </span>
+          <span> Y: {{yCoordinate}}; </span>
+        </div>
     </mat-card>
 </div>
