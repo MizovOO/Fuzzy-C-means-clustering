@@ -8,7 +8,10 @@
   height: 100%;
 }
 .side-panel{
- width: 450px;
+ width: 350px;
+}
+.end-side-panel{
+  width: 500px;
 }
 .controls{
   display: flex;
@@ -18,6 +21,8 @@
 .inputs-container {
   margin: 16px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
 }
 .input-group {
   display: flex;
@@ -30,6 +35,13 @@
     width: 100%;
   }
 }
+
+.points{
+  &>table{
+    width: 100%;
+  }
+}
+
 .wrapper{
   height: 100vh;
 }

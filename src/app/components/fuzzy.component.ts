@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { IElement } from '../model/IElement';
 import { generateTestElements, centersElaboration, calculateEuclideanDistance, getInitialCenters, initiateBelongingDegrees, defaultElements, defaultCenters, rationingBelongingDegrees, getObjective, performStep } from './fuzzy.helper';
 import { ICenter } from '../model/ICenter';
@@ -6,6 +6,7 @@ import { compose } from 'ramda';
 import { AreaRadial } from 'd3';
 import { Subject, BehaviorSubject, Observable, of } from 'rxjs';
 import { share } from 'rxjs/operators';
+import { MatSnackBar } from '@angular/material';
 
 // const DIMENSIONS_AMOUNT: number = 2;
 // const ELEMENTS_AMOUNT: number = 50;
@@ -21,19 +22,24 @@ import { share } from 'rxjs/operators';
   styleUrls: ['./fuzzy.component.scss']
 })
 export class FuzzyComponent {
+
   public elementsAndCenters: [Array<IElement>, Array<ICenter>];
 
   public dimensionsAmount: number = 2;
   public elementsAmount: number = 50;
-  public clustersAmount: number = 10;
+  public clustersAmount: number = 3;
   public exponent: number = 2;
   public BASE: number = 20;
   public maxIterationsNumber: number = 50;
   public epsilon: number = 0.01;
 
   public isProcessing: boolean = false;
-  public displayedColumns: Array<string> = ['step', 'stepDifference', 'time'];
-  public dataSource: Observable<Array<ILog>> = new Observable();
+  public logDisplayedColumns: Array<string> = ['step', 'stepDifference', 'time'];
+  public elementsDisplayedColumns: Array<string> = ['coordinates', 'belongingDegrees', 'distances'];
+  public centersDisplayedColumns: Array<string> = ['coordinates'];
+  public logsDataSource: Observable<Array<ILog>> = new Observable();
+  public elementsDataSource: Observable<Array<IElement>>;
+  public centersDataSource: Observable<Array<ICenter>>;
 
   private elements: Array<IElement> = [];
   private centers: Array<ICenter> = [];
@@ -42,9 +48,10 @@ export class FuzzyComponent {
 
   public logs: Array<ILog> = [];
 
-  constructor() {
+  constructor(public snackBar: MatSnackBar) {
     this.generateNewPoints();
-    this.dataSource = of([]).pipe(share());
+    this.updateDataSource()
+
     // let stepDifference: number;
     // let counter: number = 0;
     // do {
@@ -58,10 +65,21 @@ export class FuzzyComponent {
     // console.log(this.elements, this.centers);
 
   }
+  // ngOnInit(): void {
+  //   this.updateDataSource();
+  // }
 
   public pause(): void {
     this.isPaused = true;
   }
+
+  public transformCoordinates(coordinates: Array<number>): string {
+    return `[ ${coordinates.map(c => c.toFixed(2)).join(', ')} ]`
+  }
+
+  // public transformDigressAndDistances(values: Array<number>): string{
+  //   return `[ ${values.map(c=> c.toFixed(4)).reduce(())} ]`
+  // }
 
   private generateNewPoints(): void {
     this.counter = 0;
@@ -91,15 +109,22 @@ export class FuzzyComponent {
         time: new Date().getTime() - start.getTime()
       });
       this.updateDataSource();
-
+      if(stepDifference < this.epsilon){
+        this.openSnackBar('Clusterization is done!');
+      }
     } while (stepDifference > this.epsilon && this.counter < this.maxIterationsNumber && !this.isPaused)
     this.isProcessing = false;
     this.isPaused = false;
     this.updateElementsAndCenters(elements, centers);
+    this.updateDataSource();
+
+    if(this.counter > this.maxIterationsNumber){
+      this.openSnackBar('Max iteration number exceed!');
+    }
   }
 
   private autoCalculateWithDelay(): void {
-    this.isProcessing = true;    
+    this.isProcessing = true;
     const start: Date = new Date();
     const reachedDifference: number = this.oneCalculationStep();
     const timeSpend: number = new Date().getTime() - start.getTime();
@@ -108,11 +133,17 @@ export class FuzzyComponent {
     } else {
       this.isProcessing = false;
       this.isPaused = false;
+      if(reachedDifference < this.epsilon){
+        this.openSnackBar('Clusterization is done!');
+      }
+      if(this.counter > this.maxIterationsNumber){
+        this.openSnackBar('Max iteration number exceed!');
+      }
     }
   }
 
   private oneCalculationStep(): number {
-    this.isProcessing = true;    
+    this.isProcessing = true;
     const start: Date = new Date();
     let elements: Array<IElement> = this.elements;
     let centers: Array<ICenter> = this.centers;
@@ -127,9 +158,12 @@ export class FuzzyComponent {
       stepDifference: stepDifference.toFixed(10),
       time: new Date().getTime() - start.getTime()
     });
+    if(stepDifference < this.epsilon){
+      this.openSnackBar('Required accuracy is reached!');
+    }
     this.updateElementsAndCenters(elements, centers);
     this.updateDataSource();
-    this.isProcessing = false;    
+    this.isProcessing = false;
     return stepDifference;
   }
 
@@ -140,7 +174,16 @@ export class FuzzyComponent {
   }
 
   private updateDataSource(): void {
-    this.dataSource = of(this.logs).pipe(share());
+    this.logsDataSource = of(this.logs).pipe(share());
+    this.elementsDataSource = of(this.elements).pipe(share());
+    this.centersDataSource = of(this.centers).pipe(share());
+    // this.cgd.detectChanges();
+  }
+
+  private openSnackBar(message: string, action: string = '') {
+    this.snackBar.open(message, action, {
+      duration: 5000,
+    });
   }
 }
 
